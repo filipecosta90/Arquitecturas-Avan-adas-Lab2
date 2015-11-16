@@ -63,7 +63,7 @@ void stopKernelTime (void) {
 #endif
 
 // Fill the input parameters and kernel qualifier
-__global__ void stencilKernel (float *in, float *out, int radius) {
+void stencilKernel (float *in, float *out, int radius) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   float value = 0.0f;
   for ( int pos = -radius; pos <= radius; pos++ ){
