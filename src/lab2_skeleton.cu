@@ -144,7 +144,7 @@ void stencilCPU (int radius) {
 
 }
 
-void quick(int vet[], int esq, int dir){
+void quick(float vet[], int esq, int dir){
   int pivo = esq,i,ch,j;
 
   for(i=esq+1;i<=dir;i++){
@@ -183,7 +183,7 @@ void quicksortCPU() {
   startTime();
 
   //do the work
-  quick( &vector, 0 , SIZE-1);
+  quick( vector, 0 , SIZE-1);
 
   //stop timer
   stopTime(); 
