@@ -134,7 +134,7 @@ void stencilCPU (int radius) {
       value += vector[i+pos];
     }
 
-    output_vector[pos]=value;
+    output_vector[i]=value;
   }
   stopTime();
 
