@@ -138,10 +138,6 @@ void stencilCPU (int radius) {
   }
   stopTime();
 
-  // free the memory
-  free(vector);
-  free(output_vector);
-
 }
 
 void quick(float vet[], int esq, int dir){
@@ -186,8 +182,6 @@ void quicksortCPU() {
   //stop timer
   stopTime(); 
 
-  //free the memory
-  free(vector);
 }
 int main (int argc, char** argv){
 #ifdef D_CPU
