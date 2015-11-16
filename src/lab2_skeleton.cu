@@ -134,7 +134,7 @@ void stencilCPU (int radius) {
       value += vector[i+pos];
     }
 
-    output_vector[tid]=value;
+    output_vector[pos]=value;
   }
   stopTime();
 
@@ -177,8 +177,6 @@ void quicksortCPU() {
     vector[i]=(float) rand()/RAND_MAX;
   }
 
-  int q;
-
   //start timer
   startTime();
 
@@ -192,11 +190,10 @@ void quicksortCPU() {
   free(vector);
 }
 int main (int argc, char** argv){
-  int radius = 3;
 #ifdef D_CPU
 
   // comment the function that you do not want to execute
-  stencilCPU(radius);
+  stencilCPU(3);
   quicksortCPU();
 
 #elif D_GPU
