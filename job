@@ -53,9 +53,9 @@ read -r node_info<$PBS_NODEFILE
 echo "Allocated computing node: $node_info"
 
 echo "Going to run in GPU"
-./bin/cuda_bin
+./bin/cuda_bin 1
 
 echo "Going to run in CPU"
-./bin/cpu_bin
+./bin/cpu_bin 0
 echo "Done..."
 
