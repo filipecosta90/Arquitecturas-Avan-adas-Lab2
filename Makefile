@@ -15,7 +15,7 @@ ifeq ($(CUDA),no)
 	BIN_NAME = cpu_bin
 	CXX = g++
 	LD  = g++
-	CXXFLAGS += -DD_CPU
+	CXXFLAGS += -O3 -Wall -Wextra -std=c++11 -fopenmp -DD_CPU
 else
 	ifeq ($(CUDA),yes)
 		BIN_NAME = cuda_bin

@@ -26,35 +26,35 @@ long long unsigned cpu_time;
 cudaEvent_t start, stop;
 
 void startTime (void) {
-	gettimeofday(&t, NULL);
-	cpu_time = t.tv_sec * TIME_RESOLUTION + t.tv_usec;
+  gettimeofday(&t, NULL);
+  cpu_time = t.tv_sec * TIME_RESOLUTION + t.tv_usec;
 }
 
 void stopTime (void) {
-	gettimeofday(&t, NULL);
-	long long unsigned final_time = t.tv_sec * TIME_RESOLUTION + t.tv_usec;
+  gettimeofday(&t, NULL);
+  long long unsigned final_time = t.tv_sec * TIME_RESOLUTION + t.tv_usec;
 
-	final_time -= cpu_time;
+  final_time -= cpu_time;
 
-	cout << final_time << " us have elapsed" << endl;
+  cout << final_time << " us have elapsed" << endl;
 }
 #ifdef D_GPU
 // These are specific to measure the execution of only the kernel execution - might be useful
 void startKernelTime (void) {
-	cudaEventCreate(&start);
-	cudaEventCreate(&stop);
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
 
-	cudaEventRecord(start);
+  cudaEventRecord(start);
 }
 
 void stopKernelTime (void) {
-	cudaEventRecord(stop);
+  cudaEventRecord(stop);
 
-	cudaEventSynchronize(stop);
-	float milliseconds = 0;
-	cudaEventElapsedTime(&milliseconds, start, stop);
+  cudaEventSynchronize(stop);
+  float milliseconds = 0;
+  cudaEventElapsedTime(&milliseconds, start, stop);
 
-	cout << milliseconds << " ms have elapsed for the kernel execution" << endl;
+  cout << milliseconds << " ms have elapsed for the kernel execution" << endl;
 }
 #endif
 
@@ -89,20 +89,20 @@ void quicksortCPU (void) {
 }
 
 int main (int argc, char** argv) {
-	
-	#ifdef D_CPU
 
-	// comment the function that you do not want to execute
-	stencilCPU();
-	quicksortCPU();
+#ifdef D_CPU
 
-	#elif D_GPU
+  // comment the function that you do not want to execute
+  stencilCPU();
+  quicksortCPU();
 
-	// comment the function that you do not want to execute
-	stencilGPU();
-	quicksortGPU();
+#elif D_GPU
 
-	#endif
+  // comment the function that you do not want to execute
+  stencilGPU();
+  quicksortGPU();
 
-	return 0;
+#endif
+
+  return 0;
 }
