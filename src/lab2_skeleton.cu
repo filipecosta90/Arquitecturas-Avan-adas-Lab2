@@ -183,7 +183,7 @@ void quicksortCPU() {
   startTime();
 
   //do the work
-  quick(vector, 0 , SIZE-1);
+  quick( &vector, 0 , SIZE-1);
 
   //stop timer
   stopTime(); 
