@@ -38,26 +38,40 @@ void startKernelTime (void) {
 	cudaEventRecord(start);
 }
 
-void stopKernelTime (void) {
+void stopKernelTime (char * discription) {
 	cudaEventRecord(stop);
 
 	cudaEventSynchronize(stop);
 	float milliseconds = 0;
 	cudaEventElapsedTime(&milliseconds, start, stop);
 
-	cout << milliseconds << " ms have elapsed for the kernel execution" << endl;
+	cout << milliseconds << " ms have elapsed for the kernel" << discription << "execution" << endl;
 }
 
 // Fill the input parameters and kernel qualifier
 __global__ void stencilKernelStride (float *in, float *out, int radius) {
 
-	for ( int tid = threadIdx.x + blockIdx.x * blockDim.x; tid < SIZE; tid += blockIdx.x + blockDim.x ){
+	for ( int tid = threadIdx.x + blockIdx.x * blockDim.x; tid < SIZE; tid += STRIDE_SIZE ){
 		float value = 0.0f;
 		for ( int pos = -radius; pos <= radius; pos++ ){
 			value += in[tid+pos];
 		}
 		out[tid]=value;
 	}
+}
+
+__global__ void stencilKernelSharedMemory (float *in, float *out, int radius){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	float value = 0.0f;
+	__shared__ int temp[blockDim.x+2*radius];
+	for(int i = 0; i<SIZE; i++){
+		temp[i]=in[i]
+	}
+	__synchthreads();
+	for(int pos = -radius; pos<=radius; pos++){
+		value += temp[tid+pos];
+	}
+
 }
 
 /*
@@ -88,14 +102,16 @@ void stencilGPU (void) {
 
 	// launch the kernel
 	// instead of number o blocks we now have stride size
-	dim3 dimGrid(STRIDE_SIZE);
+	dim3 dimGrid(NUM_BLOCKS);
 	dim3 dimBlock(NUM_THREADS_PER_BLOCK);
 
 
-	stencilKernelStride<<<dimBlock,dimGrid>>>(dev_vector,dev_output,3);
+	stencilKernelStride<<<dimBlock,dimGrid>>>(dev_vector,dev_output,2);
+	cudaDeviceSynchronize()	
+	stopKernelTime("Stride");
 	// copy the output to the host
 	cudaMemcpy(&output_vector,dev_output,bytes,cudaMemcpyDeviceToHost);
-	stopKernelTime();
+	stopKernelTime("Stride");
 
 	// free the device memory
 	cudaFree(dev_vector);
