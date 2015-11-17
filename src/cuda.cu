@@ -32,46 +32,47 @@ cudaEvent_t start, stop;
 
 // These are specific to measure the execution of only the kernel execution - might be useful
 void startKernelTime (void) {
-	cudaEventCreate(&start);
-	cudaEventCreate(&stop);
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
 
-	cudaEventRecord(start);
+  cudaEventRecord(start);
 }
 
 void stopKernelTime (char * discription) {
-	cudaEventRecord(stop);
+  cudaEventRecord(stop);
 
-	cudaEventSynchronize(stop);
-	float milliseconds = 0;
-	cudaEventElapsedTime(&milliseconds, start, stop);
+  cudaEventSynchronize(stop);
+  float milliseconds = 0;
+  cudaEventElapsedTime(&milliseconds, start, stop);
 
-	cout << milliseconds << " ms have elapsed for the kernel" << discription << "execution" << endl;
+  cout << milliseconds << " ms have elapsed for the kernel" << discription << "execution" << endl;
 }
 
 // Fill the input parameters and kernel qualifier
 __global__ void stencilKernelStride (float *in, float *out, int radius) {
 
-	for ( int tid = threadIdx.x + blockIdx.x * blockDim.x; tid < SIZE; tid += STRIDE_SIZE ){
-		float value = 0.0f;
-		for ( int pos = -radius; pos <= radius; pos++ ){
-			value += in[tid+pos];
-		}
-		out[tid]=value;
-	}
+  for ( int tid = threadIdx.x + blockIdx.x * blockDim.x; tid < SIZE; tid += STRIDE_SIZE ){
+    float value = 0.0f;
+    for ( int pos = -radius; pos <= radius; pos++ ){
+      value += in[tid+pos];
+    }
+    out[tid]=value;
+  }
 }
 
 __global__ void stencilKernelSharedMemory (float *in, float *out, int radius){
-	int tid = threadIdx.x + blockIdx.x * blockDim.x;
-	float value = 0.0f;
-	__shared__ int temp[blockDim.x+2*radius];
-	for(int i = 0; i<SIZE; i++){
-		temp[i]=in[i]
-	}
-	__synchthreads();
-	for(int pos = -radius; pos<=radius; pos++){
-		value += temp[tid+pos];
-	}
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  float value = 0.0f;
+  __shared__ int temp[blockDim.x+2*radius];
+  for(int i = 0; i<= 2*radius; i++){
+    temp[i]=in[tid-radius+i];
+  }
+  __synchthreads();
 
+  for(int pos = 0; pos<=2*radius; pos++){
+    value += temp[pos];
+  }
+  out[tid] = value;
 }
 
 /*
@@ -84,38 +85,41 @@ void quicksortKernel (???) {
 // Fill with the code required for the GPU stencil (mem allocation, transfers, kernel launch....)
 void stencilGPU (void) {
 
-	int bytes = SIZE*sizeof(int);
-	float vector[SIZE], output_vector[SIZE];
-	float *dev_vector, *dev_output;
+  int bytes = SIZE*sizeof(int);
+  float vector[SIZE], output_vector[SIZE];
+  float *dev_vector, *dev_output;
 
-	// create random vector
-	for (unsigned i = 0; i<SIZE; i++){
-		vector[i]=(float) rand()/RAND_MAX;
-	}
+  // create random vector
+  for (unsigned i = 0; i<SIZE; i++){
+    vector[i]=(float) rand()/RAND_MAX;
+  }
 
-	// malloc memmory device
-	cudaMalloc((void**)&dev_vector,bytes);
-	cudaMalloc((void**)&dev_output,bytes);
-	startKernelTime();
-	// copy inputs to the device
-	cudaMemcpy(dev_vector,&vector,bytes,cudaMemcpyHostToDevice);
+  // malloc memmory device
+  cudaMalloc((void**)&dev_vector,bytes);
+  cudaMalloc((void**)&dev_output,bytes);
+  startKernelTime();
+  // copy inputs to the device
+  cudaMemcpy(dev_vector,&vector,bytes,cudaMemcpyHostToDevice);
 
-	// launch the kernel
-	// instead of number o blocks we now have stride size
-	dim3 dimGrid(NUM_BLOCKS);
-	dim3 dimBlock(NUM_THREADS_PER_BLOCK);
+  // launch the kernel
+  // instead of number o blocks we now have stride size
+  dim3 dimGrid(NUM_BLOCKS);
+  dim3 dimBlock(NUM_THREADS_PER_BLOCK);
 
+  stencilKernelStride<<<dimBlock,dimGrid>>>(dev_vector,dev_output,2);
+  cudaDeviceSynchronize();
+  stopKernelTime("Stride");
+  // copy the output to the host
+  startKernelTime();
+  stencilKernelSharedMemory <<<dimBlock,dimGrid>>>(dev_vector,dev_output,2);
+  stopKernelTime("Shared Memory");
+  startKernelTime();
+  cudaMemcpy(&output_vector,dev_output,bytes,cudaMemcpyDeviceToHost);
+  stopKernelTime("cudaMemcpy");
 
-	stencilKernelStride<<<dimBlock,dimGrid>>>(dev_vector,dev_output,2);
-	cudaDeviceSynchronize()	
-	stopKernelTime("Stride");
-	// copy the output to the host
-	cudaMemcpy(&output_vector,dev_output,bytes,cudaMemcpyDeviceToHost);
-	stopKernelTime("Stride");
-
-	// free the device memory
-	cudaFree(dev_vector);
-	cudaFree(dev_output);
+  // free the device memory
+  cudaFree(dev_vector);
+  cudaFree(dev_output);
 }
 /*
 // Fill with the code required for the GPU quicksort (mem allocation, transfers, kernel launch....)
@@ -125,7 +129,7 @@ void quicksortGPU (void) {
 
 int main (int argc, char** argv){
 
-	stencilGPU();
-	return 0;
+  stencilGPU();
+  return 0;
 }
 
