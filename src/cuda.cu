@@ -49,29 +49,38 @@ void stopKernelTime (char * discription) {
 }
 
 // Fill the input parameters and kernel qualifier
-__global__ void stencilKernelStride (float *in, float *out, int radius) {
+__global__ void stencilKernelStride (float *in, float *out) {
 
   for ( int tid = threadIdx.x + blockIdx.x * blockDim.x; tid < SIZE; tid += STRIDE_SIZE ){
     float value = 0.0f;
-    for ( int pos = -radius; pos <= radius; pos++ ){
+    for ( int pos = -RADIUS; pos <= RADIUS; pos++ ){
       value += in[tid+pos];
     }
     out[tid]=value;
   }
 }
 
-__global__ void stencilKernelSharedMemory (float *in, float *out, int radius){
+__global__ void stencilKernelSharedMemory (float *in, float *out){
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   float value = 0.0f;
-  __shared__ int temp[blockDim.x+2*radius];
-  for(int i = 0; i<= 2*radius; i++){
-    temp[i]=in[tid-radius+i];
-  }
-  __synchthreads();
+  __shared__ float temp[NUM_THREADS_PER_BLOCK+2*RADIUS];
+ temp[threadIdx.x + RADIUS] = in[tid];
+	if(threadIdx.x < RADIUS ){
+	 	//before
+		if (tid - threadIdx.x >= 0){
+			temp[threadIdx.x] = in[tid - threadIdx.x];
+		}
+	 	//after
+		if ( tid + threadIdx.x < SIZE){
+			temp[threadIdx.x+blockDim.x] = in[tid + threadIdx.x];
+		}
+	 }
+  __syncthreads();
 
-  for(int pos = 0; pos<=2*radius; pos++){
+    for(int pos = 0; pos<=2*RADIUS; pos++){
     value += temp[pos];
   }
+
   out[tid] = value;
 }
 
