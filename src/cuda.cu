@@ -49,12 +49,14 @@ void stopKernelTime (void) {
 
 // Fill the input parameters and kernel qualifier
 __global__ void stencilKernel (float *in, float *out, int radius) {
-	int tid = threadIdx.x + blockIdx.x * blockDim.x;
-	float value = 0.0f;
-	for ( int pos = -radius; pos <= radius; pos++ ){
-		value += in[tid+pos];
+
+	for ( int tid = threadIdx.x + blockIdx.x * blockDim.x; tid < SIZE; tid += blockIdx.x + blockDim.x ){
+		float value = 0.0f;
+		for ( int pos = -radius; pos <= radius; pos++ ){
+			value += in[tid+pos];
+		}
+		out[tid]=value;
 	}
-	out[tid]=value;
 }
 
 /*
@@ -79,7 +81,7 @@ void stencilGPU (void) {
 	// malloc memmory device
 	cudaMalloc((void**)&dev_vector,bytes);
 	cudaMalloc((void**)&dev_output,bytes);
-startKernelTime();
+	startKernelTime();
 	// copy inputs to the device
 	cudaMemcpy(dev_vector,&vector,bytes,cudaMemcpyHostToDevice);
 
@@ -87,11 +89,11 @@ startKernelTime();
 	dim3 dimGrid(NUM_BLOCKS);
 	dim3 dimBlock(NUM_THREADS_PER_BLOCK);
 
-	
+
 	stencilKernel<<<dimBlock,dimGrid>>>(dev_vector,dev_output,3);
-		// copy the output to the host
+	// copy the output to the host
 	cudaMemcpy(&output_vector,dev_output,bytes,cudaMemcpyDeviceToHost);
-stopKernelTime();
+	stopKernelTime();
 
 	// free the device memory
 	cudaFree(dev_vector);
@@ -104,8 +106,8 @@ void quicksortGPU (void) {
 }*/
 
 int main (int argc, char** argv){
-			
-stencilGPU();
-		return 0;
+
+	stencilGPU();
+	return 0;
 }
 
