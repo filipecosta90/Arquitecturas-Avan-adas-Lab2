@@ -23,6 +23,7 @@
 #define STRIDE_SIZE 16
 #define NUM_THREADS_PER_BLOCK 256
 #define SIZE NUM_BLOCKS*NUM_THREADS_PER_BLOCK
+#define RADIUS 2
 
 using namespace std;
 timeval t;
@@ -45,7 +46,7 @@ void stopKernelTime (char * discription) {
   float milliseconds = 0;
   cudaEventElapsedTime(&milliseconds, start, stop);
 
-  cout << milliseconds << " ms have elapsed for the kernel" << discription << "execution" << endl;
+  cout << milliseconds << " ms have elapsed for the kernel " << discription << " execution" << endl;
 }
 
 // Fill the input parameters and kernel qualifier
@@ -115,12 +116,12 @@ void stencilGPU (void) {
   dim3 dimGrid(NUM_BLOCKS);
   dim3 dimBlock(NUM_THREADS_PER_BLOCK);
 
-  stencilKernelStride<<<dimBlock,dimGrid>>>(dev_vector,dev_output,2);
+  stencilKernelStride<<<dimBlock,dimGrid>>>(dev_vector,dev_output);
   cudaDeviceSynchronize();
   stopKernelTime("Stride");
   // copy the output to the host
   startKernelTime();
-  stencilKernelSharedMemory <<<dimBlock,dimGrid>>>(dev_vector,dev_output,2);
+  stencilKernelSharedMemory <<<dimBlock,dimGrid>>>(dev_vector,dev_output);
   stopKernelTime("Shared Memory");
   startKernelTime();
   cudaMemcpy(&output_vector,dev_output,bytes,cudaMemcpyDeviceToHost);
