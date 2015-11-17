@@ -20,6 +20,7 @@
 
 #define TIME_RESOLUTION 1000000	// time measuring resolution (us)
 #define NUM_BLOCKS 128
+#define STRIDE_SIZE 16
 #define NUM_THREADS_PER_BLOCK 256
 #define SIZE NUM_BLOCKS*NUM_THREADS_PER_BLOCK
 
@@ -86,7 +87,8 @@ void stencilGPU (void) {
 	cudaMemcpy(dev_vector,&vector,bytes,cudaMemcpyHostToDevice);
 
 	// launch the kernel
-	dim3 dimGrid(NUM_BLOCKS);
+	// instead of number o blocks we now have stride size
+	dim3 dimGrid(STRIDE_SIZE);
 	dim3 dimBlock(NUM_THREADS_PER_BLOCK);
 
 
