@@ -51,17 +51,33 @@ void stencilCPU (int radius) {
 	}
 
 	startTime();
-	for ( unsigned i = 0; i < SIZE; i++ ){
+	//initial positions
+	for ( int i = 0; i < radius; i++ ){
 		float value = 0.0f;
+		for ( int pos = 0; pos <= radius; pos++ ){
+			value += vector[i+pos];
+		}
+		output_vector[i]=value;
+	}
 
+	// middle positions
+	for ( int i = radius; i < SIZE - radius ; i++ ){
+		float value = 0.0f;
 		for ( int pos = -radius; pos <= radius; pos++ ){
 			value += vector[i+pos];
 		}
+		output_vector[i]=value;
+	}
 
+	//final positions
+	for ( int i = SIZE - radius ; i < SIZE; i++ ){
+		float value = 0.0f;
+		for ( int pos = -radius; pos + i < SIZE; pos++ ){
+			value += vector[i+pos];
+		}
 		output_vector[i]=value;
 	}
 	stopTime("stencilCPU");
-
 }
 
 void quick(float vet[], int esq, int dir){
@@ -110,8 +126,8 @@ void quicksortCPU() {
 
 int main (int argc, char** argv){
 
-			stencilCPU(3);
-			quicksortCPU();
-		return 0;
+	stencilCPU(3);
+	quicksortCPU();
+	return 0;
 }
 
