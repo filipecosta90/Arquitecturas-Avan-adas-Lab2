@@ -49,7 +49,7 @@ void stopKernelTime (void) {
 }
 
 // Fill the input parameters and kernel qualifier
-__global__ void stencilKernel (float *in, float *out, int radius) {
+__global__ void stencilKernelStride (float *in, float *out, int radius) {
 
 	for ( int tid = threadIdx.x + blockIdx.x * blockDim.x; tid < SIZE; tid += blockIdx.x + blockDim.x ){
 		float value = 0.0f;
@@ -92,7 +92,7 @@ void stencilGPU (void) {
 	dim3 dimBlock(NUM_THREADS_PER_BLOCK);
 
 
-	stencilKernel<<<dimBlock,dimGrid>>>(dev_vector,dev_output,3);
+	stencilKernelStride<<<dimBlock,dimGrid>>>(dev_vector,dev_output,3);
 	// copy the output to the host
 	cudaMemcpy(&output_vector,dev_output,bytes,cudaMemcpyDeviceToHost);
 	stopKernelTime();
