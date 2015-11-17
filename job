@@ -38,24 +38,18 @@ echo "Done Loading Modules..."
 
 cd cpd_aa_lab2
 
-echo "Going to compile for GPU"
-export CUDA=yes
+echo "Going to compile for GPU and CPU"
 make clean
 make
-
-echo "Going to compile for CPU"
-export CUDA=no
-make
-
 
 read -r node_info<$PBS_NODEFILE
 
 echo "Allocated computing node: $node_info"
 
 echo "Going to run in GPU"
-./bin/cuda_bin 1
+./bin/cuda_bin 
 
 echo "Going to run in CPU"
-./bin/cpu_bin 0
+./bin/cpu_bin 
 echo "Done..."
 

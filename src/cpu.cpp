@@ -33,13 +33,12 @@ void startTime (void) {
 	cpu_time = t.tv_sec * TIME_RESOLUTION + t.tv_usec;
 }
 
-void stopTime (void) {
+void stopTime (char* description ) {
 	gettimeofday(&t, NULL);
 	long long unsigned final_time = t.tv_sec * TIME_RESOLUTION + t.tv_usec;
 
 	final_time -= cpu_time;
-
-	cout << final_time << " us have elapsed" << endl;
+	cout << final_time << " us have elapsed since " << description << " has started" << endl;
 }
 
 
@@ -61,7 +60,7 @@ void stencilCPU (int radius) {
 
 		output_vector[i]=value;
 	}
-	stopTime();
+	stopTime("stencilCPU");
 
 }
 
@@ -105,9 +104,10 @@ void quicksortCPU() {
 	quick( vector, 0 , SIZE-1);
 
 	//stop timer
-	stopTime(); 
+	stopTime("quickSortCPU"); 
 
 }
+
 int main (int argc, char** argv){
 
 			stencilCPU(3);

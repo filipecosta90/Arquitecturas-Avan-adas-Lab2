@@ -29,19 +29,6 @@ timeval t;
 long long unsigned cpu_time;
 cudaEvent_t start, stop;
 
-void startTime (void) {
-	gettimeofday(&t, NULL);
-	cpu_time = t.tv_sec * TIME_RESOLUTION + t.tv_usec;
-}
-
-void stopTime (void) {
-	gettimeofday(&t, NULL);
-	long long unsigned final_time = t.tv_sec * TIME_RESOLUTION + t.tv_usec;
-
-	final_time -= cpu_time;
-
-	cout << final_time << " us have elapsed" << endl;
-}
 // These are specific to measure the execution of only the kernel execution - might be useful
 void startKernelTime (void) {
 	cudaEventCreate(&start);
@@ -92,7 +79,7 @@ void stencilGPU (void) {
 	// malloc memmory device
 	cudaMalloc((void**)&dev_vector,bytes);
 	cudaMalloc((void**)&dev_output,bytes);
-
+startKernelTime();
 	// copy inputs to the device
 	cudaMemcpy(dev_vector,&vector,bytes,cudaMemcpyHostToDevice);
 
@@ -100,11 +87,11 @@ void stencilGPU (void) {
 	dim3 dimGrid(NUM_BLOCKS);
 	dim3 dimBlock(NUM_THREADS_PER_BLOCK);
 
-	startKernelTime();
+	
 	stencilKernel<<<dimBlock,dimGrid>>>(dev_vector,dev_output,3);
-	stopKernelTime();
-	// copy the output to the host
+		// copy the output to the host
 	cudaMemcpy(&output_vector,dev_output,bytes,cudaMemcpyDeviceToHost);
+stopKernelTime();
 
 	// free the device memory
 	cudaFree(dev_vector);
@@ -116,90 +103,9 @@ void quicksortGPU (void) {
 
 }*/
 
-// Fill with the code required for the CPU stencil
-void stencilCPU (int radius) {
-	float vector[SIZE], output_vector[SIZE];
-
-	for (unsigned i = 0; i<SIZE; i++){
-		vector[i]=(float) rand()/RAND_MAX;
-	}
-
-	startTime();
-	for ( unsigned i = 0; i < SIZE; i++ ){
-		float value = 0.0f;
-
-		for ( int pos = -radius; pos <= radius; pos++ ){
-			value += vector[i+pos];
-		}
-
-		output_vector[i]=value;
-	}
-	stopTime();
-
-}
-
-void quick(float vet[], int esq, int dir){
-	int pivo = esq,i,ch,j;
-
-	for(i=esq+1;i<=dir;i++){
-		j = i;
-		if(vet[j] < vet[pivo]){
-			ch = vet[j];
-			while(j > pivo){
-				vet[j] = vet[j-1];
-				j--;
-			}
-			vet[j] = ch;
-			pivo++;
-		}
-	}
-
-	if(pivo-1 >= esq){
-		quick(vet,esq,pivo-1);
-	}
-
-	if(pivo+1 <= dir){
-		quick(vet,pivo+1,dir);
-	}
-}
-
-void quicksortCPU() {
-
-	float vector[SIZE];
-
-	for (unsigned i = 0; i<SIZE; i++){
-		vector[i]=(float) rand()/RAND_MAX;
-	}
-
-	//start timer
-	startTime();
-
-	//do the work
-	quick( vector, 0 , SIZE-1);
-
-	//stop timer
-	stopTime(); 
-
-}
 int main (int argc, char** argv){
-
-	if ( argc >= 1 ){
-		int gpu = atoi(argv[1]);
-		if ( gpu == 0 ){
-			// comment the function that you do not want to execute
-			stencilCPU(3);
-			quicksortCPU();
-
-		}
-		else {
-			// comment the function that you do not want to execute
-			stencilGPU();
-			//quicksortGPU();
-		}
+			
+stencilGPU();
 		return 0;
-	}
-	else {
-		return 1;
-	}	
 }
 

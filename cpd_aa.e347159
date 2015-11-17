@@ -1,0 +1,20 @@
+make: Warning: File `Makefile' has modification time 1.1e+09 s in the future
+make: warning:  Clock skew detected.  Your build may be incomplete.
+make: Warning: File `Makefile' has modification time 1.1e+09 s in the future
+src/cpu.cpp: In function 'void stencilCPU(int)':
+src/cpu.cpp:63:23: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+  stopTime("stencilCPU");
+                       ^
+src/cpu.cpp:47:22: warning: variable 'output_vector' set but not used [-Wunused-but-set-variable]
+  float vector[SIZE], output_vector[SIZE];
+                      ^
+src/cpu.cpp: In function 'void quicksortCPU()':
+src/cpu.cpp:107:25: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+  stopTime("quickSortCPU"); 
+                         ^
+src/cpu.cpp: At global scope:
+src/cpu.cpp:111:5: warning: unused parameter 'argc' [-Wunused-parameter]
+ int main (int argc, char** argv){
+     ^
+src/cpu.cpp:111:5: warning: unused parameter 'argv' [-Wunused-parameter]
+make: warning:  Clock skew detected.  Your build may be incomplete.
