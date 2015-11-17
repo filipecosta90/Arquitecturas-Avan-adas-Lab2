@@ -13,6 +13,7 @@
  *     export CUDA=yes    or    export CUDA=no
  *
  **************************************************************/
+#include <omp.h>
 #include <stdio.h>
 #include <cstdlib>
 #include <iostream>
@@ -44,14 +45,19 @@ void stopTime (char* description ) {
 
 // Fill with the code required for the CPU stencil
 void stencilCPU (int radius) {
-	float vector[SIZE], output_vector[SIZE];
+	startTime();
 
+#pragma omp parallel 
+	{
+	float vector[SIZE], output_vector[SIZE];
+	
+	#pragma omp for nowait schedule (static)
 	for (unsigned i = 0; i<SIZE; i++){
 		vector[i]=(float) rand()/RAND_MAX;
 	}
 
-	startTime();
-	//initial positions
+		//initial positions
+	#pragma omp for nowait schedule (static)
 	for ( int i = 0; i < radius; i++ ){
 		float value = 0.0f;
 		for ( int pos = 0; pos <= radius; pos++ ){
@@ -59,8 +65,9 @@ void stencilCPU (int radius) {
 		}
 		output_vector[i]=value;
 	}
-
+	
 	// middle positions
+	#pragma omp for nowait schedule (static)
 	for ( int i = radius; i < SIZE - radius ; i++ ){
 		float value = 0.0f;
 		for ( int pos = -radius; pos <= radius; pos++ ){
@@ -70,6 +77,7 @@ void stencilCPU (int radius) {
 	}
 
 	//final positions
+	#pragma omp for nowait schedule (static)
 	for ( int i = SIZE - radius ; i < SIZE; i++ ){
 		float value = 0.0f;
 		for ( int pos = -radius; pos + i < SIZE; pos++ ){
@@ -77,12 +85,15 @@ void stencilCPU (int radius) {
 		}
 		output_vector[i]=value;
 	}
+
+}
 	stopTime("stencilCPU");
 }
 
 void quick(float vet[], int esq, int dir){
 	int pivo = esq,i,ch,j;
 
+	#pragma omp parallel for
 	for(i=esq+1;i<=dir;i++){
 		j = i;
 		if(vet[j] < vet[pivo]){
@@ -99,7 +110,6 @@ void quick(float vet[], int esq, int dir){
 	if(pivo-1 >= esq){
 		quick(vet,esq,pivo-1);
 	}
-
 	if(pivo+1 <= dir){
 		quick(vet,pivo+1,dir);
 	}
