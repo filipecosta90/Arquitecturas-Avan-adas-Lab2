@@ -1,47 +1,35 @@
 ################################################################################
-# Makefile for general code snippets
+# Makefile for PCP 
 #
-# by André Pereira (LIP-Minho)
+# by (CPD-Minho)
 ################################################################################
 
 SHELL = /bin/sh
 
-BIN_NAME = cuda_bin
+CUDA = cuda
+CPU = cpu
+CXX = g++
+LD  = g++
 
+CUDAXX = nvcc
+CUDALD = nvcc
 
-CXXFLAGS   = -O3
+BIN_CUDA = cuda_bin
+BIN_CPU = cpu_bin
 
-ifeq ($(CUDA),no)
-	BIN_NAME = cpu_bin
-	CXX = g++
-	LD  = g++
-	CXXFLAGS += -O3 -Wall -Wextra -std=c++11 -fopenmp -DD_CPU
-else
-	ifeq ($(CUDA),yes)
-		BIN_NAME = cuda_bin
-		CXX = nvcc
-		LD  = nvcc
-		CXXFLAGS += -DD_GPU
-	endif
-endif
-
-ifeq ($(DEBUG),yes)
-	CXXFLAGS += -ggdb3
-endif
-
-################################################################################
-# Control awesome stuff
-################################################################################
+CXXFLAGS   = -O3 -Wall -Wextra  -fopenmp
+CUDAFLAGS = -O3
 
 SRC_DIR = src
 BIN_DIR = bin
 BUILD_DIR = build
+
 SRC = $(wildcard $(SRC_DIR)/*.cu)
-OBJ = $(patsubst src/%.cu,build/%.o,$(SRC))
-DEPS = $(patsubst build/%.o,build/%.d,$(OBJ))
-BIN = $(BIN_NAME)
+OBJ = $(patsubst src/*.cu,build/*.o,$(SRC))
+DEPS = $(patsubst build/*.o,build/*.d,$(OBJ))
 
 vpath %.cu $(SRC_DIR)
+
 
 ################################################################################
 # Rules
@@ -49,20 +37,30 @@ vpath %.cu $(SRC_DIR)
 
 .DEFAULT_GOAL = all
 
-$(BUILD_DIR)/%.d: %.cu
-	$(CXX) -M $(CXXFLAGS) $(INCLUDES) $< -o $@ $(LIBS)
+$(BUILD_DIR)/$(CUDA).d: $(SRC_DIR)/$(CUDA).cu
+	$(CUDAXX) -M $(CUDAFLAGS) $(INCLUDES) $< -o $@
 
-$(BUILD_DIR)/%.o: %.cu
-	$(CXX) -c $(CXXFLAGS) $(INCLUDES) $< -o $@ $(LIBS)
+$(BUILD_DIR)/$(CUDA).o: $(SRC_DIR)/$(CUDA).cu
+	$(CUDAXX) -c $(CUDAFLAGS) $(INCLUDES) $< -o $@
 
-$(BIN_DIR)/$(BIN_NAME): $(DEPS) $(OBJ)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $(OBJ) $(LIBS)
+$(BUILD_DIR)/$(CPU).d: $(SRC_DIR)/$(CPU).cpp
+	$(CXX) -M $(CXXFLAGS) $(INCLUDES) $< -o $@
+
+$(BUILD_DIR)/$(CPU).o: $(SRC_DIR)/$(CPU).cpp
+	$(CXX) -c $(CXXFLAGS) $(INCLUDES) $< -o $@
+
+$(BIN_DIR)/$(BIN_CUDA): $(BUILD_DIR)/$(CUDA).o $(BUILD_DIR)/$(CUDA).d 
+	$(CUDAXX) $(CUDAFLAGS) $(INCLUDES) -o $@ $(BUILD_DIR)/$(CUDA).o 
+
+$(BIN_DIR)/$(BIN_CPU): $(BUILD_DIR)/$(CPU).o $(BUILD_DIR)/$(CPU).d 
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $(BUILD_DIR)/$(CPU).o 
 
 checkdirs:
-	@mkdir -p $(BUILD_DIR)
-	@mkdir -p $(BIN_DIR)
+	@mkdir -p build 
+	@mkdir -p src
+	@mkdir -p bin
 
-all: checkdirs $(BIN_DIR)/$(BIN_NAME)
+all: checkdirs  $(BIN_DIR)/$(BIN_CUDA) $(BIN_DIR)/$(BIN_CPU) 
 
 clean:
-	rm -f $(BUILD_DIR)/* $(BIN_DIR)/* 
+	rm -f $(BUILD_DIR)/* $(BIN_DIR)/* 	

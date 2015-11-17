@@ -42,7 +42,6 @@ void stopTime (void) {
 
 	cout << final_time << " us have elapsed" << endl;
 }
-#ifdef D_GPU
 // These are specific to measure the execution of only the kernel execution - might be useful
 void startKernelTime (void) {
 	cudaEventCreate(&start);
@@ -60,10 +59,9 @@ void stopKernelTime (void) {
 
 	cout << milliseconds << " ms have elapsed for the kernel execution" << endl;
 }
-#endif
 
 // Fill the input parameters and kernel qualifier
-void stencilKernel (float *in, float *out, int radius) {
+__global__ void stencilKernel (float *in, float *out, int radius) {
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	float value = 0.0f;
 	for ( int pos = -radius; pos <= radius; pos++ ){
